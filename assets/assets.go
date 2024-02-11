@@ -14,7 +14,10 @@ import (
 //go:embed *
 var assets embed.FS
 
+var RabbitSprite = mustLoadImage("tile_0106.png")
+var RabbitSpriteR = mustLoadImage("tile_0160.png")
 var PlayerSprite = mustLoadImage("player.png")
+var LettuceSprite = mustLoadImage("tile_0094.png")
 var MeteorSprites = mustLoadImages("meteors/*.png")
 var LaserSprite = mustLoadImage("laser.png")
 var ScoreFont = mustLoadFont("font.ttf")

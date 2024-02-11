@@ -15,7 +15,7 @@ const (
 	screenWidth  = 800
 	screenHeight = 600
 
-	meteorSpawnTime = 1 * time.Second
+	lettuceSpawnTime = 1 * time.Second
 
 	baseMeteorVelocity  = 0.25
 	meteorSpeedUpAmount = 0.1
@@ -23,69 +23,92 @@ const (
 )
 
 type Game struct {
-	player           *Player
-	meteorSpawnTimer *Timer
-	meteors          []*Meteor
-	bullets          []*Bullet
+	player            *Player
+	rabbit            *Rabbit
+	lettuceSpawnTimer *Timer
+	lettuces          []*Lettuce
+	bullets           []*Bullet
 
-	score int
-
+	score         int
+	scale         float64
 	baseVelocity  float64
 	velocityTimer *Timer
 }
 
 func NewGame() *Game {
 	g := &Game{
-		meteorSpawnTimer: NewTimer(meteorSpawnTime),
-		baseVelocity:     baseMeteorVelocity,
-		velocityTimer:    NewTimer(meteorSpeedUpTime),
+		lettuceSpawnTimer: NewTimer(lettuceSpawnTime),
+		baseVelocity:      baseMeteorVelocity,
+		velocityTimer:     NewTimer(meteorSpeedUpTime),
 	}
 
-	g.player = NewPlayer(g)
+	g.rabbit = NewRabbit(g)
+
+	m := NewLettuce(g.baseVelocity)
+	g.lettuces = append(g.lettuces, m)
 
 	return g
 }
 
 func (g *Game) Update() error {
+
+	g.scale += 0.01
+	if g.scale > 2 {
+		g.scale = 0.5
+	}
+
 	g.velocityTimer.Update()
 	if g.velocityTimer.IsReady() {
 		g.velocityTimer.Reset()
 		g.baseVelocity += meteorSpeedUpAmount
 	}
 
-	g.player.Update()
+	g.rabbit.Update()
 
-	g.meteorSpawnTimer.Update()
-	if g.meteorSpawnTimer.IsReady() {
-		g.meteorSpawnTimer.Reset()
+	g.lettuceSpawnTimer.Update()
+	if g.lettuceSpawnTimer.IsReady() {
+		g.lettuceSpawnTimer.Reset()
 
-		m := NewMeteor(g.baseVelocity)
-		g.meteors = append(g.meteors, m)
+		m := NewLettuce(g.baseVelocity)
+		g.lettuces = append(g.lettuces, m)
 	}
 
-	for _, m := range g.meteors {
-		m.Update()
+	for _, l := range g.lettuces {
+		l.Update()
 	}
 
-	for _, b := range g.bullets {
-		b.Update()
+	if ebiten.IsKeyPressed(ebiten.Key1) {
+		ebiten.SetFullscreen(true)
 	}
 
-	// Check for meteor/bullet collisions
-	for i, m := range g.meteors {
-		for j, b := range g.bullets {
-			if m.Collider().Intersects(b.Collider()) {
-				g.meteors = append(g.meteors[:i], g.meteors[i+1:]...)
-				g.bullets = append(g.bullets[:j], g.bullets[j+1:]...)
-				g.score++
+	if ebiten.IsKeyPressed(ebiten.Key2) {
+		ebiten.SetFullscreen(false)
+	}
+
+	// for _, b := range g.bullets {
+	// 	b.Update()
+	// }
+
+	// // Check for meteor/bullet collisions
+	// for i, m := range g.meteors {
+	// 	for j, b := range g.bullets {
+	// 		if m.Collider().Intersects(b.Collider()) {
+	// 			g.meteors = append(g.meteors[:i], g.meteors[i+1:]...)
+	// 			g.bullets = append(g.bullets[:j], g.bullets[j+1:]...)
+	// 			g.score++
+	// 		}
+	// 	}
+	// }
+
+	// Check for rabbit/lettuces collisions
+	for i, l := range g.lettuces {
+		if l.Collider().Intersects(g.rabbit.Collider()) {
+			g.lettuces = append(g.lettuces[:i], g.lettuces[i+1:]...)
+			g.score++
+			if len(g.lettuces) == 0 {
+				g.Reset()
 			}
-		}
-	}
-
-	// Check for meteor/player collisions
-	for _, m := range g.meteors {
-		if m.Collider().Intersects(g.player.Collider()) {
-			g.Reset()
+			//g.Reset()
 			break
 		}
 	}
@@ -94,15 +117,21 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	g.player.Draw(screen)
 
-	for _, m := range g.meteors {
+	opts := &ebiten.DrawImageOptions{}
+	// Ajusta la escala de la imagen. 1 es el tamaño original, valores mayores para hacer zoom in, menores para zoom out.
+	opts.GeoM.Scale(g.scale, g.scale)
+	// Dibuja la imagen en la pantalla con las opciones de escala.
+
+	g.rabbit.Draw(screen)
+
+	for _, m := range g.lettuces {
 		m.Draw(screen)
 	}
 
-	for _, b := range g.bullets {
-		b.Draw(screen)
-	}
+	// for _, b := range g.bullets {
+	// 	b.Draw(screen)
+	// }
 
 	text.Draw(screen, fmt.Sprintf("%06d", g.score), assets.ScoreFont, screenWidth/2-100, 50, color.White)
 }
@@ -112,11 +141,11 @@ func (g *Game) AddBullet(b *Bullet) {
 }
 
 func (g *Game) Reset() {
-	g.player = NewPlayer(g)
-	g.meteors = nil
+	g.rabbit = NewRabbit(g)
+	g.lettuces = nil
 	g.bullets = nil
 	g.score = 0
-	g.meteorSpawnTimer.Reset()
+	g.lettuceSpawnTimer.Reset()
 	g.baseVelocity = baseMeteorVelocity
 	g.velocityTimer.Reset()
 }
