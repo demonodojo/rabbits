@@ -79,7 +79,7 @@ func (r *Rabbit) Update() {
 
 }
 
-func (r *Rabbit) Draw(screen *ebiten.Image, options *ebiten.DrawImageOptions) {
+func (r *Rabbit) Draw(screen *ebiten.Image) {
 
 	op := &ebiten.DrawImageOptions{}
 
