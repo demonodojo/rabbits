@@ -1,12 +1,18 @@
 package main
 
 import (
-	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/demonodojo/rabbits/game"
+	"github.com/demonodojo/rabbits/game/network"
 
-	"github.com/ThreeDotsLabs/meteors/game"
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
 func main() {
+	if true {
+		server := network.Server{Port: ":8080"}
+		go server.Start() // Inicia el servidor en un goroutine
+	}
+
 	g := game.NewGame()
 
 	err := ebiten.RunGame(g)
