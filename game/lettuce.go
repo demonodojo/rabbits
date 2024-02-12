@@ -5,7 +5,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 
-	"github.com/ThreeDotsLabs/meteors/assets"
+	"github.com/demonodojo/rabbits/assets"
 )
 
 type Lettuce struct {

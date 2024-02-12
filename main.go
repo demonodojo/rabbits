@@ -1,6 +1,8 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"github.com/demonodojo/rabbits/game"
 	"github.com/demonodojo/rabbits/game/network"
 
@@ -8,9 +10,17 @@ import (
 )
 
 func main() {
-	if true {
+	serverMode := flag.Bool("server", false, "Inits the application in server mode")
+
+	// Parsea los flags desde los argumentos de línea de comandos
+	flag.Parse()
+
+	if *serverMode {
+		fmt.Println("Iniciando en modo servidor...")
 		server := network.Server{Port: ":8080"}
-		go server.Start() // Inicia el servidor en un goroutine
+		server.Start()
+	} else {
+		fmt.Println("Iniciando en modo cliente...")
 	}
 
 	g := game.NewGame()
