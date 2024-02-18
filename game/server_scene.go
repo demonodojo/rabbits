@@ -29,6 +29,7 @@ type ServerScene struct {
 func NewServerScene(g *Game, server *network.Server) *ServerScene {
 	s := &ServerScene{
 		game:          g,
+		rabbits:       make(map[uuid.UUID]*Rabbit),
 		server:        server,
 		baseVelocity:  baseMeteorVelocity,
 		velocityTimer: NewTimer(meteorSpeedUpTime),
@@ -42,6 +43,14 @@ func NewServerScene(g *Game, server *network.Server) *ServerScene {
 func (g *ServerScene) Update() error {
 
 	g.UpdateRabbits()
+
+	for _, rabbit := range g.rabbits {
+		rabbit.Update()
+	}
+
+	for _, l := range g.lettuces {
+		l.Update()
+	}
 
 	for _, l := range g.lettuces {
 		l.Update()
@@ -81,7 +90,7 @@ func (g *ServerScene) Draw(screen *ebiten.Image) {
 }
 
 func (g *ServerScene) Reset() {
-	g.rabbits = nil
+	g.rabbits = make(map[uuid.UUID]*Rabbit)
 	g.lettuces = nil
 	g.score = 0
 	g.baseVelocity = baseMeteorVelocity

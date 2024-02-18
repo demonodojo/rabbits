@@ -46,43 +46,45 @@ func NewRabbit(game *Game) *Rabbit {
 			ID:        uuid.New(),
 			ClassName: "Rabbit",
 		},
-		game:          game,
-		Position:      pos,
-		scale:         scale,
-		bounds:        bounds,
-		halfW:         halfW,
-		halfH:         halfH,
-		Rotation:      0,
-		sprite:        sprite,
-		spriteR:       spriteR,
-		shootCooldown: NewTimer(shootCooldown),
+		game:     game,
+		Position: pos,
+		scale:    scale,
+		bounds:   bounds,
+		halfW:    halfW,
+		halfH:    halfH,
+		Rotation: 0,
+		sprite:   sprite,
+		spriteR:  spriteR,
 	}
 }
 
-func (r *Rabbit) Update() {
+func (r *Rabbit) Update() bool {
 	rotationSpeed := rotationPerSecond / float64(ebiten.TPS())
 	SpeedPerSecond := 0.1
-
+	interaction := false
 	if ebiten.IsKeyPressed(ebiten.KeyLeft) {
 		r.Rotation -= rotationSpeed
+		interaction = true
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyRight) {
 		r.Rotation += rotationSpeed
+		interaction = true
 	}
 
 	if ebiten.IsKeyPressed(ebiten.KeyUp) {
 		r.Speed += SpeedPerSecond
+		interaction = true
 	}
 
 	if ebiten.IsKeyPressed(ebiten.KeyDown) {
 		r.Speed -= SpeedPerSecond
+		interaction = true
 	}
 
 	r.Position.X += math.Sin(r.Rotation) * r.Speed
 	r.Position.Y += math.Cos(r.Rotation) * -r.Speed
 
-	r.shootCooldown.Update()
-
+	return interaction
 }
 
 func (r *Rabbit) Draw(screen *ebiten.Image) {

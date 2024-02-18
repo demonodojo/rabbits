@@ -4,6 +4,7 @@ package network
 
 import (
 	"github.com/gorilla/websocket"
+	"log"
 	"sync"
 )
 
@@ -48,9 +49,13 @@ func (manager *ClientManager) Run() {
 		case peerConn := <-manager.messageEvents:
 			if peer, ok := manager.peers[peerConn]; ok {
 				// Intenta leer un mensaje de la cola de salida del Peer
-				if message, ok := peer.OutgoingMsg.Dequeue(); ok {
+				log.Println("Aviso de mensaje entrante")
+				if message, ok := peer.Read(); ok {
 					// Procesa el mensaje, por ejemplo, encolándolo en allMessages
+					log.Printf("Mensaje leido de la cola del peer %s", message)
 					manager.allMessages.Enqueue(PeerMessage{Peer: peerConn, Message: message})
+				} else {
+					log.Println("Nada en la cola")
 				}
 			}
 		}

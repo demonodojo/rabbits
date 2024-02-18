@@ -26,7 +26,7 @@ func (s *Server) handleConnections(w http.ResponseWriter, r *http.Request) {
 		log.Println("Error al actualizar WebSocket:", err)
 		return
 	}
-
+	log.Println("Nueva Conexión")
 	clientManager.RegisterClient(ws)
 
 }

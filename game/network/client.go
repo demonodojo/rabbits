@@ -43,7 +43,7 @@ func (c *Client) readPump() {
 }
 
 func (c *Client) writePump() {
-	ticker := time.NewTicker(1 * time.Second)
+	ticker := time.NewTicker(1 * time.Millisecond)
 	defer ticker.Stop()
 	for {
 		select {
@@ -54,6 +54,7 @@ func (c *Client) writePump() {
 			if !ok {
 				continue
 			}
+			log.Printf("Escribiendo: %s\n", message)
 			if err := c.Conn.WriteMessage(websocket.TextMessage, []byte(message)); err != nil {
 				log.Println("write:", err)
 				return

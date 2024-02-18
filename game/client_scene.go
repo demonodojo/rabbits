@@ -36,11 +36,13 @@ func NewClientScene(g *Game, client *network.Client) *ClientScene {
 	return s
 }
 
-func (g *ClientScene) Update() error {
+func (s *ClientScene) Update() error {
 
-	g.rabbit.Update()
+	if s.rabbit.Update() {
+		s.client.Write(s.rabbit.ToJson())
+	}
 
-	for _, l := range g.lettuces {
+	for _, l := range s.lettuces {
 		l.Update()
 	}
 

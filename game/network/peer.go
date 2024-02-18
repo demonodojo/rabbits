@@ -1,6 +1,8 @@
 package network
 
 import (
+	"log"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -40,6 +42,7 @@ func (p *Peer) readPump() {
 				// Manejar error o desconexión
 				return
 			}
+			log.Printf("Mensaje recibido %s\n", string(message))
 			p.IncomingMsg.Enqueue(string(message))
 			p.events <- p.Conn
 		}
