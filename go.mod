@@ -9,6 +9,7 @@ require (
 
 require (
 	github.com/ebitengine/purego v0.6.0 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.1 // indirect
 	github.com/jezek/xgb v1.1.1 // indirect
 	golang.org/x/exp/shiny v0.0.0-20240205201215-2c58cdc269a3 // indirect

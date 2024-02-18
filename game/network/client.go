@@ -3,33 +3,74 @@ package network
 import (
 	"github.com/gorilla/websocket"
 	"log"
+	"time"
 )
 
-func connectToServer() {
-	// Conectar al servidor WebSocket
-	c, _, err := websocket.DefaultDialer.Dial("ws://localhost:8080/ws", nil)
-	if err != nil {
-		log.Fatal("dial:", err)
-	}
-	defer c.Close()
-
-	// Enviar un mensaje al servidor
-	err = c.WriteMessage(websocket.TextMessage, []byte("Hola desde el cliente Ebiten!"))
-	if err != nil {
-		log.Println("write:", err)
-		return
-	}
-
-	// Leer respuesta (Si aplicable)
-	_, message, err := c.ReadMessage()
-	if err != nil {
-		log.Println("read:", err)
-		return
-	}
-	log.Printf("Recibido: %s\n", message)
+// Client representa a un cliente conectado a un servidor WebSocket.
+type Client struct {
+	Conn        *websocket.Conn
+	IncomingMsg *MessageQueue
+	OutgoingMsg *MessageQueue
+	done        chan struct{}
 }
 
-func main() {
-	// Aquí inicias tu juego Ebiten y te conectas al servidor WebSocket
-	connectToServer()
+func NewClient(url string) (*Client, error) {
+	conn, _, err := websocket.DefaultDialer.Dial(url, nil)
+	if err != nil {
+		return nil, err
+	}
+	client := &Client{
+		Conn:        conn,
+		IncomingMsg: NewMessageQueue(),
+		OutgoingMsg: NewMessageQueue(),
+		done:        make(chan struct{}),
+	}
+	go client.readPump()
+	go client.writePump()
+	return client, nil
+}
+
+func (c *Client) readPump() {
+	defer close(c.done)
+	for {
+		_, message, err := c.Conn.ReadMessage()
+		if err != nil {
+			log.Println("read:", err)
+			return
+		}
+		c.IncomingMsg.Enqueue(string(message))
+	}
+}
+
+func (c *Client) writePump() {
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-c.done:
+			return
+		case <-ticker.C:
+			message, ok := c.OutgoingMsg.Dequeue()
+			if !ok {
+				continue
+			}
+			if err := c.Conn.WriteMessage(websocket.TextMessage, []byte(message)); err != nil {
+				log.Println("write:", err)
+				return
+			}
+		}
+	}
+}
+
+func (c *Client) Close() {
+	close(c.done)
+	c.Conn.Close()
+}
+
+func (c *Client) Write(message string) {
+	c.OutgoingMsg.Enqueue(message)
+}
+
+func (c *Client) Read() (string, bool) {
+	return c.IncomingMsg.Dequeue()
 }

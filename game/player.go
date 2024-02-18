@@ -17,7 +17,7 @@ const (
 )
 
 type Player struct {
-	game *Game
+	game *Scene
 
 	position Vector
 	rotation float64
@@ -26,7 +26,7 @@ type Player struct {
 	shootCooldown *Timer
 }
 
-func NewPlayer(game *Game) *Player {
+func NewPlayer(game *Scene) *Player {
 	sprite := assets.PlayerSprite
 
 	bounds := sprite.Bounds()
@@ -71,7 +71,7 @@ func (p *Player) Update() {
 		}
 
 		bullet := NewBullet(spawnPos, p.rotation)
-		p.game.AddBullet(bullet)
+		(*p.game).SpawnElement("bullet", bullet)
 	}
 }
 

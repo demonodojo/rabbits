@@ -18,30 +18,32 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
+var clientManager = NewClientManager()
+
 func (s *Server) handleConnections(w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
+	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("Error al actualizar WebSocket:", err)
 		return
 	}
-	defer conn.Close()
 
-	for {
-		_, message, err := conn.ReadMessage()
-		if err != nil {
-			log.Println("Error al leer mensaje:", err)
-			break
-		}
-		log.Printf("Mensaje recibido: %s\n", message)
+	clientManager.RegisterClient(ws)
 
-		// Maneja aquí el mensaje recibido
-	}
 }
 
 func (s *Server) Start() {
-	http.HandleFunc("/ws", s.handleConnections)
-	log.Printf("Iniciando servidor WebSocket en %s\n", s.Port)
-	if err := http.ListenAndServe(s.Port, nil); err != nil {
-		log.Fatal("Error iniciando servidor WebSocket:", err)
-	}
+
+	go clientManager.Run()
+
+	go func() {
+		http.HandleFunc("/ws", s.handleConnections)
+		log.Printf("Iniciando servidor WebSocket en %s\n", s.Port)
+		if err := http.ListenAndServe(s.Port, nil); err != nil {
+			log.Fatal("Error iniciando servidor WebSocket:", err)
+		}
+	}()
+}
+
+func (s *Server) ReadAll() []PeerMessage {
+	return clientManager.allMessages.ReadAll()
 }

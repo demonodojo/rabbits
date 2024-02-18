@@ -1,20 +1,22 @@
 package game
 
 import (
+	"encoding/json"
 	"image"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 
 	"github.com/demonodojo/rabbits/assets"
+	"github.com/google/uuid"
 )
 
 type Rabbit struct {
-	game *Game
-
-	position Vector
-	rotation float64
-	speed    float64
+	Serial
+	game     *Game
+	Position Vector  `json:"position"`
+	Rotation float64 `json:"rotation"`
+	Speed    float64 `json:"speed"`
 	scale    float64
 	bounds   image.Rectangle
 	halfW    float64
@@ -40,13 +42,17 @@ func NewRabbit(game *Game) *Rabbit {
 	}
 
 	return &Rabbit{
+		Serial: Serial{
+			ID:        uuid.New(),
+			ClassName: "Rabbit",
+		},
 		game:          game,
-		position:      pos,
+		Position:      pos,
 		scale:         scale,
 		bounds:        bounds,
 		halfW:         halfW,
 		halfH:         halfH,
-		rotation:      0,
+		Rotation:      0,
 		sprite:        sprite,
 		spriteR:       spriteR,
 		shootCooldown: NewTimer(shootCooldown),
@@ -55,25 +61,25 @@ func NewRabbit(game *Game) *Rabbit {
 
 func (r *Rabbit) Update() {
 	rotationSpeed := rotationPerSecond / float64(ebiten.TPS())
-	speedPerSecond := 0.1
+	SpeedPerSecond := 0.1
 
 	if ebiten.IsKeyPressed(ebiten.KeyLeft) {
-		r.rotation -= rotationSpeed
+		r.Rotation -= rotationSpeed
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyRight) {
-		r.rotation += rotationSpeed
+		r.Rotation += rotationSpeed
 	}
 
 	if ebiten.IsKeyPressed(ebiten.KeyUp) {
-		r.speed += speedPerSecond
+		r.Speed += SpeedPerSecond
 	}
 
 	if ebiten.IsKeyPressed(ebiten.KeyDown) {
-		r.speed -= speedPerSecond
+		r.Speed -= SpeedPerSecond
 	}
 
-	r.position.X += math.Sin(r.rotation) * r.speed
-	r.position.Y += math.Cos(r.rotation) * -r.speed
+	r.Position.X += math.Sin(r.Rotation) * r.Speed
+	r.Position.Y += math.Cos(r.Rotation) * -r.Speed
 
 	r.shootCooldown.Update()
 
@@ -85,11 +91,11 @@ func (r *Rabbit) Draw(screen *ebiten.Image) {
 
 	op.GeoM.Scale(r.scale, r.scale)
 	op.GeoM.Translate(-r.halfW, -r.halfH)
-	op.GeoM.Rotate(r.rotation)
+	op.GeoM.Rotate(r.Rotation)
 	op.GeoM.Translate(r.halfW, r.halfH)
 
-	x := r.position.X
-	y := r.position.Y
+	x := r.Position.X
+	y := r.Position.Y
 	if x > screenWidth-r.halfW*2 {
 		x = screenWidth - r.halfW*2
 	} else if x < 0 {
@@ -102,7 +108,7 @@ func (r *Rabbit) Draw(screen *ebiten.Image) {
 	}
 
 	sprite := r.sprite
-	if x != r.position.X || y != r.position.Y {
+	if x != r.Position.X || y != r.Position.Y {
 		sprite = r.spriteR
 	}
 
@@ -114,9 +120,21 @@ func (r *Rabbit) Draw(screen *ebiten.Image) {
 func (r *Rabbit) Collider() Rect {
 
 	return NewRect(
-		r.position.X,
-		r.position.Y,
+		r.Position.X,
+		r.Position.Y,
 		float64(r.halfW*2),
 		float64(r.halfH*2),
 	)
+}
+
+func (r *Rabbit) ToJson() string {
+	json, _ := json.Marshal(r)
+	return string(json)
+}
+
+func (r *Rabbit) CopyFrom(other *Rabbit) {
+	r.ID = other.ID
+	r.Position = other.Position
+	r.Rotation = other.Rotation
+	r.Speed = other.Speed
 }
