@@ -51,15 +51,17 @@ func (p *Peer) readPump() {
 }
 
 func (p *Peer) writePump() {
+	ticker := time.NewTicker(1 * time.Millisecond)
+	defer ticker.Stop()
 	for {
 		select {
 		case <-p.done:
 			log.Printf("cerrando la cola...")
 			return // Termina la goroutine si se recibe señal de cierre
-		default:
+		case <-ticker.C:
 			message, ok := p.OutgoingMsg.Dequeue()
 			if !ok {
-				time.Sleep(2 * time.Millisecond)
+				continue
 			} else {
 				log.Printf("Mensaje enviado %s\n", string(message))
 				if err := p.Conn.WriteMessage(websocket.TextMessage, []byte(message)); err != nil {
