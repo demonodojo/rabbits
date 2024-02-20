@@ -47,3 +47,7 @@ func (s *Server) Start() {
 func (s *Server) ReadAll() []PeerMessage {
 	return clientManager.allMessages.ReadAll()
 }
+
+func (s *Server) Broadcast(message string) {
+	clientManager.Broadcast(message)
+}

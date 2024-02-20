@@ -47,3 +47,11 @@ func (q *MessageQueue) Size() int {
 	defer q.mutex.Unlock()
 	return len(q.items)
 }
+
+func (q *MessageQueue) ReadAll() []string {
+	q.mutex.Lock()
+	defer q.mutex.Unlock()
+	items := q.items
+	q.items = nil // Vacía la cola
+	return items
+}

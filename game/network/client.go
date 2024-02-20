@@ -38,6 +38,7 @@ func (c *Client) readPump() {
 			log.Println("read:", err)
 			return
 		}
+		log.Printf("Mensaje leido: %s\n", message)
 		c.IncomingMsg.Enqueue(string(message))
 	}
 }
@@ -74,4 +75,8 @@ func (c *Client) Write(message string) {
 
 func (c *Client) Read() (string, bool) {
 	return c.IncomingMsg.Dequeue()
+}
+
+func (c *Client) ReadAll() []string {
+	return c.IncomingMsg.ReadAll()
 }

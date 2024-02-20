@@ -2,6 +2,7 @@ package network
 
 import (
 	"log"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -53,16 +54,18 @@ func (p *Peer) writePump() {
 	for {
 		select {
 		case <-p.done:
+			log.Printf("cerrando la cola...")
 			return // Termina la goroutine si se recibe señal de cierre
 		default:
 			message, ok := p.OutgoingMsg.Dequeue()
 			if !ok {
-				// Esperar o manejar cuando no hay mensajes
-				return
-			}
-			if err := p.Conn.WriteMessage(websocket.TextMessage, []byte(message)); err != nil {
-				// Manejar error
-				return
+				time.Sleep(2 * time.Millisecond)
+			} else {
+				log.Printf("Mensaje enviado %s\n", string(message))
+				if err := p.Conn.WriteMessage(websocket.TextMessage, []byte(message)); err != nil {
+					// Manejar error
+					return
+				}
 			}
 		}
 	}

@@ -58,7 +58,14 @@ func NewRabbit(game *Game) *Rabbit {
 	}
 }
 
-func (r *Rabbit) Update() bool {
+func (r *Rabbit) Update() {
+
+	r.Position.X += math.Sin(r.Rotation) * r.Speed
+	r.Position.Y += math.Cos(r.Rotation) * -r.Speed
+
+}
+
+func (r *Rabbit) Interact() bool {
 	rotationSpeed := rotationPerSecond / float64(ebiten.TPS())
 	SpeedPerSecond := 0.1
 	interaction := false
@@ -81,8 +88,7 @@ func (r *Rabbit) Update() bool {
 		interaction = true
 	}
 
-	r.Position.X += math.Sin(r.Rotation) * r.Speed
-	r.Position.Y += math.Cos(r.Rotation) * -r.Speed
+	r.Update()
 
 	return interaction
 }

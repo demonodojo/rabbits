@@ -1,9 +1,12 @@
 package game
 
 import (
+	"encoding/json"
 	"fmt"
 	"image/color"
+	"log"
 
+	"github.com/google/uuid"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
 
@@ -15,6 +18,7 @@ type ClientScene struct {
 	game     *Game
 	client   *network.Client
 	rabbit   *Rabbit
+	rabbits  map[uuid.UUID]*Rabbit
 	lettuces []*Lettuce
 
 	score         int
@@ -30,7 +34,7 @@ func NewClientScene(g *Game, client *network.Client) *ClientScene {
 		baseVelocity:  baseMeteorVelocity,
 		velocityTimer: NewTimer(meteorSpeedUpTime),
 	}
-
+	s.rabbits = make(map[uuid.UUID]*Rabbit)
 	s.rabbit = NewRabbit(g)
 	client.Write(s.rabbit.ToJson())
 	return s
@@ -38,8 +42,14 @@ func NewClientScene(g *Game, client *network.Client) *ClientScene {
 
 func (s *ClientScene) Update() error {
 
-	if s.rabbit.Update() {
+	if s.rabbit.Interact() {
 		s.client.Write(s.rabbit.ToJson())
+	}
+
+	s.UpdateRabbits()
+
+	for _, r := range s.rabbits {
+		r.Update()
 	}
 
 	for _, l := range s.lettuces {
@@ -70,6 +80,10 @@ func (g *ClientScene) Draw(screen *ebiten.Image) {
 		m.Draw(screen)
 	}
 
+	for _, r := range g.rabbits {
+		r.Draw(screen)
+	}
+
 	// for _, b := range g.bullets {
 	// 	b.Draw(screen)
 	// }
@@ -91,4 +105,43 @@ func (g *ClientScene) Layout(outsideWidth, outsideHeight int) (int, int) {
 
 func (s *ClientScene) SpawnElement(name string, element interface{}) {
 
+}
+
+func (s *ClientScene) UpdateRabbits() {
+
+	messages := s.client.ReadAll()
+
+	for _, m := range messages {
+		jsonData := []byte(m)
+		var serial Serial
+		if err := json.Unmarshal(jsonData, &serial); err != nil {
+			log.Fatal(fmt.Errorf("Cannot unmarshal %s", m))
+			continue
+		}
+		switch serial.ClassName {
+		case "Rabbit":
+			var rabbit Rabbit
+			if err := json.Unmarshal(jsonData, &rabbit); err != nil {
+				log.Fatal(fmt.Errorf("Cannot unmarshal the Rabbit %s", m))
+				continue
+			}
+			var existing *Rabbit
+			if s.rabbit.ID == rabbit.ID {
+				existing = s.rabbit
+			} else {
+				existing = s.rabbits[rabbit.ID]
+			}
+			if existing != nil {
+				existing.CopyFrom(&rabbit)
+			} else {
+				newRabbit := NewRabbit(s.game)
+				newRabbit.CopyFrom(&rabbit)
+				s.rabbits[rabbit.ID] = newRabbit
+			}
+		case "Lettuce":
+			log.Fatal("lettuce not implemented")
+		default:
+			log.Printf("Cannot unmarshal the Rabbit %s", m)
+		}
+	}
 }

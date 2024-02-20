@@ -123,6 +123,7 @@ func (s *ServerScene) UpdateRabbits() {
 				log.Fatal(fmt.Errorf("Cannot unmarshal the Rabbit %s", m.Message))
 				continue
 			}
+			s.server.Broadcast(m.Message)
 			existing := s.rabbits[rabbit.ID]
 			if existing != nil {
 				existing.CopyFrom(&rabbit)
@@ -131,7 +132,6 @@ func (s *ServerScene) UpdateRabbits() {
 				newRabbit.CopyFrom(&rabbit)
 				s.rabbits[rabbit.ID] = newRabbit
 			}
-			rabbit.Update()
 		case "Lettuce":
 			log.Fatal("lettuce not implemented")
 		default:
