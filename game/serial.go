@@ -7,4 +7,5 @@ import (
 type Serial struct {
 	ID        uuid.UUID `json:"id"`
 	ClassName string    `json:"class_name"`
+	Action    string    `json:"action"`
 }

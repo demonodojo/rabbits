@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"image"
 	"math"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 
@@ -13,16 +14,18 @@ import (
 
 type Rabbit struct {
 	Serial
-	game     *Game
-	Position Vector  `json:"position"`
-	Rotation float64 `json:"rotation"`
-	Speed    float64 `json:"speed"`
-	scale    float64
-	bounds   image.Rectangle
-	halfW    float64
-	halfH    float64
-	sprite   *ebiten.Image
-	spriteR  *ebiten.Image
+	game           *Game
+	Position       Vector  `json:"position"`
+	Rotation       float64 `json:"rotation"`
+	Speed          float64 `json:"speed"`
+	Score          int32   `json:"score"`
+	lastUpdateTime time.Time
+	scale          float64
+	bounds         image.Rectangle
+	halfW          float64
+	halfH          float64
+	sprite         *ebiten.Image
+	spriteR        *ebiten.Image
 
 	shootCooldown *Timer
 }
@@ -45,23 +48,31 @@ func NewRabbit(game *Game) *Rabbit {
 		Serial: Serial{
 			ID:        uuid.New(),
 			ClassName: "Rabbit",
+			Action:    "Spawn",
 		},
-		game:     game,
-		Position: pos,
-		scale:    scale,
-		bounds:   bounds,
-		halfW:    halfW,
-		halfH:    halfH,
-		Rotation: 0,
-		sprite:   sprite,
-		spriteR:  spriteR,
+		game:           game,
+		Position:       pos,
+		Score:          0,
+		scale:          scale,
+		bounds:         bounds,
+		halfW:          halfW,
+		halfH:          halfH,
+		Rotation:       0,
+		sprite:         sprite,
+		spriteR:        spriteR,
+		lastUpdateTime: time.Now(),
 	}
 }
 
 func (r *Rabbit) Update() {
+	now := time.Now()
+	delta := now.Sub(r.lastUpdateTime)
+	r.lastUpdateTime = now
 
-	r.Position.X += math.Sin(r.Rotation) * r.Speed
-	r.Position.Y += math.Cos(r.Rotation) * -r.Speed
+	deltaMs := delta.Seconds() * 1000
+	updateFactor := deltaMs / 16.666
+	r.Position.X += math.Sin(r.Rotation) * updateFactor * r.Speed
+	r.Position.Y += math.Cos(r.Rotation) * updateFactor * (-r.Speed)
 
 }
 
@@ -142,7 +153,9 @@ func (r *Rabbit) ToJson() string {
 
 func (r *Rabbit) CopyFrom(other *Rabbit) {
 	r.ID = other.ID
+	r.Action = other.Action
 	r.Position = other.Position
 	r.Rotation = other.Rotation
 	r.Speed = other.Speed
+	r.Score = other.Score
 }

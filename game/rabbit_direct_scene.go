@@ -46,7 +46,7 @@ func NewRabbitDirectScene(g *Game) *RabbitDirectScene {
 
 	s.rabbit = NewRabbit(g)
 
-	m := NewLettuce(s.baseVelocity)
+	m := NewLettuce()
 	s.lettuces = append(s.lettuces, m)
 
 	return s
@@ -71,7 +71,7 @@ func (g *RabbitDirectScene) Update() error {
 	if g.lettuceSpawnTimer.IsReady() {
 		g.lettuceSpawnTimer.Reset()
 
-		m := NewLettuce(g.baseVelocity)
+		m := NewLettuce()
 		g.lettuces = append(g.lettuces, m)
 	}
 
