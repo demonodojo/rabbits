@@ -54,6 +54,8 @@ func NewRabbitDirectScene(g *Game) *RabbitDirectScene {
 
 func (g *RabbitDirectScene) Update() error {
 
+	g.rabbit.Interact()
+
 	g.scale += 0.01
 	if g.scale > 2 {
 		g.scale = 0.5

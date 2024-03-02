@@ -55,9 +55,11 @@ func (s *ServerScene) Update() error {
 	if s.lettuceSpawnTimer.IsReady() {
 		s.lettuceSpawnTimer.Reset()
 
-		l := NewLettuce()
-		s.lettuces[l.ID] = l
-		s.server.Broadcast(l.ToJson())
+		if len(s.lettuces) < 20 {
+			l := NewLettuce()
+			s.lettuces[l.ID] = l
+			s.server.Broadcast(l.ToJson())
+		}
 	}
 
 	for _, l := range s.lettuces {
@@ -183,7 +185,7 @@ func (s *ServerScene) CheckTime() {
 	deltaMs := delta.Seconds() * 1000
 
 	// Suponiendo que estás apuntando a 60 FPS, verifica si el delta de tiempo excede los 16.666 ms
-	if deltaMs > 16.666 {
+	if deltaMs > (16.666 * 2) {
 		fmt.Printf("Sobrepasado: %v ms\n", deltaMs-16.666)
 	}
 

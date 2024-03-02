@@ -16,7 +16,7 @@ import (
 
 type ClientScene struct {
 	game          *Game
-	client        *network.Client
+	client        network.GenericClient
 	rabbit        *Rabbit
 	rabbits       map[uuid.UUID]*Rabbit
 	lettuces      map[uuid.UUID]*Lettuce
@@ -29,7 +29,7 @@ type ClientScene struct {
 	velocityTimer *Timer
 }
 
-func NewClientScene(g *Game, client *network.Client) *ClientScene {
+func NewClientScene(g *Game, client network.GenericClient) *ClientScene {
 	s := &ClientScene{
 		game:          g,
 		client:        client,

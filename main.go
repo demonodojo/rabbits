@@ -1,3 +1,5 @@
+//go:build !js || !wasm
+
 package main
 
 import (
@@ -15,6 +17,7 @@ func main() {
 	var scene game.Scene
 	serverMode := flag.Bool("server", false, "Inits the application in server mode")
 	clientMode := flag.Bool("client", false, "Inits the application in client mode")
+	directMode := flag.Bool("direct", false, "Inits the application in direct mode")
 	url := "ws://localhost:8080/ws"
 	// Parsea los flags desde los argumentos de línea de comandos
 	flag.Parse()
@@ -24,6 +27,8 @@ func main() {
 		server := network.Server{Port: ":8080"}
 		server.Start()
 		scene = game.NewServerScene(g, &server)
+	} else if *directMode {
+		scene = game.NewRabbitDirectScene(g)
 	} else if *clientMode {
 		fmt.Println("Iniciando en modo cliente...")
 		client, err := network.NewClient(url)
@@ -33,7 +38,6 @@ func main() {
 			scene = game.NewClientScene(g, client)
 		}
 		defer client.Close()
-
 	} else {
 		scene = game.NewRabbitDirectScene(g)
 	}

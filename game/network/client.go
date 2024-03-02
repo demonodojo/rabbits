@@ -6,6 +6,13 @@ import (
 	"time"
 )
 
+type GenericClient interface {
+	Close()
+	Write(message string)
+	Read() (string, bool)
+	ReadAll() []string
+}
+
 // Client representa a un cliente conectado a un servidor WebSocket.
 type Client struct {
 	Conn        *websocket.Conn
