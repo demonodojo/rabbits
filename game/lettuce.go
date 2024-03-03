@@ -43,12 +43,13 @@ func (m *Lettuce) Update() {
 
 }
 
-func (l *Lettuce) Draw(screen *ebiten.Image) {
+func (l *Lettuce) Draw(screen *ebiten.Image, geom ebiten.GeoM) {
 
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Scale(l.scale, l.scale)
 
 	op.GeoM.Translate(l.Position.X, l.Position.Y)
+	op.GeoM.Concat(geom)
 
 	screen.DrawImage(l.sprite, op)
 }

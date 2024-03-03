@@ -104,7 +104,7 @@ func (r *Rabbit) Interact() bool {
 	return interaction
 }
 
-func (r *Rabbit) Draw(screen *ebiten.Image) {
+func (r *Rabbit) Draw(screen *ebiten.Image, geom ebiten.GeoM) {
 
 	op := &ebiten.DrawImageOptions{}
 
@@ -115,25 +115,26 @@ func (r *Rabbit) Draw(screen *ebiten.Image) {
 
 	x := r.Position.X
 	y := r.Position.Y
-	if x > screenWidth-r.halfW*2 {
-		x = screenWidth - r.halfW*2
-	} else if x < 0 {
-		x = 0
-	}
-	if y > screenHeight-r.halfH*2 {
-		y = screenHeight - r.halfH*2
-	} else if y < 0 {
-		y = 0
-	}
-
-	sprite := r.sprite
-	if x != r.Position.X || y != r.Position.Y {
-		sprite = r.spriteR
-	}
-
 	op.GeoM.Translate(x, y)
+	op.GeoM.Concat(geom)
 
-	screen.DrawImage(sprite, op)
+	// if x > screenWidth-r.halfW*2 {
+	// 	x = screenWidth - r.halfW*2
+	// } else if x < 0 {
+	// 	x = 0
+	// }
+	// if y > screenHeight-r.halfH*2 {
+	// 	y = screenHeight - r.halfH*2
+	// } else if y < 0 {
+	// 	y = 0
+	// }
+
+	// sprite := r.sprite
+	// if x != r.Position.X || y != r.Position.Y {
+	// 	sprite = r.spriteR
+	// }
+
+	screen.DrawImage(r.sprite, op)
 }
 
 func (r *Rabbit) Collider() Rect {

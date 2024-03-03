@@ -7,6 +7,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
+	"golang.org/x/image/math/f64"
 
 	"github.com/demonodojo/rabbits/assets"
 )
@@ -24,6 +25,8 @@ const (
 
 type RabbitDirectScene struct {
 	game              *Game
+	camera            *Camera
+	offscreen         *ebiten.Image
 	player            *Player
 	rabbit            *Rabbit
 	lettuceSpawnTimer *Timer
@@ -39,11 +42,13 @@ type RabbitDirectScene struct {
 func NewRabbitDirectScene(g *Game) *RabbitDirectScene {
 	s := &RabbitDirectScene{
 		game:              g,
+		camera:            &Camera{ViewPort: f64.Vec2{screenWidth, screenHeight}},
 		lettuceSpawnTimer: NewTimer(lettuceSpawnTime),
 		baseVelocity:      baseMeteorVelocity,
 		velocityTimer:     NewTimer(meteorSpeedUpTime),
 	}
 
+	s.camera.Reset()
 	s.rabbit = NewRabbit(g)
 
 	m := NewLettuce()
@@ -89,6 +94,8 @@ func (g *RabbitDirectScene) Update() error {
 		ebiten.SetFullscreen(false)
 	}
 
+	g.camera.Update(g.rabbit)
+
 	// for _, b := range g.bullets {
 	// 	b.Update()
 	// }
@@ -127,10 +134,10 @@ func (g *RabbitDirectScene) Draw(screen *ebiten.Image) {
 	opts.GeoM.Scale(g.scale, g.scale)
 	// Dibuja la imagen en la pantalla con las opciones de escala.
 
-	g.rabbit.Draw(screen)
+	g.rabbit.Draw(screen, g.camera.Matrix)
 
-	for _, m := range g.lettuces {
-		m.Draw(screen)
+	for _, l := range g.lettuces {
+		l.Draw(screen, g.camera.Matrix)
 	}
 
 	// for _, b := range g.bullets {

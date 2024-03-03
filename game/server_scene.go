@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
+	"golang.org/x/image/math/f64"
 
 	"github.com/demonodojo/rabbits/assets"
 	"github.com/demonodojo/rabbits/game/network"
@@ -18,6 +19,7 @@ import (
 
 type ServerScene struct {
 	game              *Game
+	camera            *Camera
 	server            *network.Server
 	lettuceSpawnTimer *Timer
 	rabbits           map[uuid.UUID]*Rabbit
@@ -34,6 +36,7 @@ type ServerScene struct {
 func NewServerScene(g *Game, server *network.Server) *ServerScene {
 	s := &ServerScene{
 		game:              g,
+		camera:            &Camera{ViewPort: f64.Vec2{screenWidth, screenHeight}},
 		rabbits:           make(map[uuid.UUID]*Rabbit),
 		lettuces:          make(map[uuid.UUID]*Lettuce),
 		lettuceSpawnTimer: NewTimer(lettuceSpawnTime),
@@ -111,11 +114,11 @@ func (g *ServerScene) Draw(screen *ebiten.Image) {
 	// Dibuja la imagen en la pantalla con las opciones de escala.
 
 	for _, rabbit := range g.rabbits {
-		rabbit.Draw(screen)
+		rabbit.Draw(screen, g.camera.Matrix)
 	}
 
 	for _, m := range g.lettuces {
-		m.Draw(screen)
+		m.Draw(screen, g.camera.Matrix)
 	}
 
 	// for _, b := range g.bullets {

@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
+	"golang.org/x/image/math/f64"
 
 	"github.com/demonodojo/rabbits/assets"
 	"github.com/demonodojo/rabbits/game/network"
@@ -16,6 +17,7 @@ import (
 
 type ClientScene struct {
 	game          *Game
+	camera        *Camera
 	client        network.GenericClient
 	rabbit        *Rabbit
 	rabbits       map[uuid.UUID]*Rabbit
@@ -32,10 +34,13 @@ type ClientScene struct {
 func NewClientScene(g *Game, client network.GenericClient) *ClientScene {
 	s := &ClientScene{
 		game:          g,
+		camera:        &Camera{ViewPort: f64.Vec2{screenWidth, screenHeight}},
 		client:        client,
 		baseVelocity:  baseMeteorVelocity,
 		velocityTimer: NewTimer(meteorSpeedUpTime),
 	}
+
+	s.camera.Reset()
 	s.rabbits = make(map[uuid.UUID]*Rabbit)
 	s.lettuces = make(map[uuid.UUID]*Lettuce)
 	s.rabbit = NewRabbit(g)
@@ -59,6 +64,8 @@ func (s *ClientScene) Update() error {
 	for _, r := range s.rabbits {
 		r.Update()
 	}
+
+	s.camera.Update(s.rabbit)
 
 	for _, l := range s.lettuces {
 		l.Update()
@@ -88,12 +95,12 @@ func (g *ClientScene) Draw(screen *ebiten.Image) {
 
 	for _, id := range g.rabbitsOrder {
 		r := g.rabbits[id]
-		r.Draw(screen)
+		r.Draw(screen, g.camera.Matrix)
 	}
 
 	for _, id := range g.lettucesOrder {
 		l := g.lettuces[id]
-		l.Draw(screen)
+		l.Draw(screen, g.camera.Matrix)
 	}
 
 	// for _, b := range g.bullets {
