@@ -5,21 +5,25 @@ import (
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"golang.org/x/image/math/f64"
 )
 
 type Camera struct {
 	ViewPort   f64.Vec2
 	Position   f64.Vec2
-	ZoomFactor int
+	ZoomFactor float64
 	Rotation   int
 	Matrix     ebiten.GeoM
 	attached   bool
+	dragStart  f64.Vec2
+	posStart   f64.Vec2
+	dragging   bool
 }
 
 func (c *Camera) String() string {
 	return fmt.Sprintf(
-		"T: %.1f, R: %d, S: %d",
+		"T: %.1f, R: %d, S: %f",
 		c.Position, c.Rotation, c.ZoomFactor,
 	)
 }
@@ -68,6 +72,8 @@ func (c *Camera) Reset() {
 	c.Rotation = 0
 	c.ZoomFactor = 0
 	c.attached = false
+	c.dragging = false
+
 }
 
 func (c *Camera) Update(r *Rabbit) error {
@@ -101,6 +107,11 @@ func (c *Camera) Update(r *Rabbit) error {
 		}
 	}
 
+	_, y := ebiten.Wheel()
+	if y != 0 {
+		c.ZoomFactor += y * 5
+	}
+
 	if ebiten.IsKeyPressed(ebiten.KeyE) {
 		c.Rotation -= 1
 	}
@@ -121,6 +132,29 @@ func (c *Camera) Update(r *Rabbit) error {
 		c.attached = false
 	}
 
+	c.updateDrag()
+
 	c.Matrix = c.worldMatrix()
 	return nil
+}
+
+func (c *Camera) updateDrag() {
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		x, y := ebiten.CursorPosition()
+		c.dragStart = f64.Vec2{
+			float64(x),
+			float64(y),
+		}
+		c.posStart = c.Position
+		c.dragging = true
+	}
+
+	if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) {
+		c.dragging = false
+	}
+	if c.dragging {
+		x, y := ebiten.CursorPosition()
+		c.Position[0] = c.posStart[0] - float64(x) + c.dragStart[0]
+		c.Position[1] = c.posStart[1] - float64(y) + c.dragStart[1]
+	}
 }
