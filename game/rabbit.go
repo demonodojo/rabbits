@@ -31,7 +31,7 @@ type Rabbit struct {
 }
 
 func NewRabbit(game *Game) *Rabbit {
-	sprite := assets.RabbitSprite
+	sprite := assets.PlayerSprite
 	spriteR := assets.RabbitSpriteR
 
 	scale := 4.0
