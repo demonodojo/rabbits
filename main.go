@@ -18,6 +18,7 @@ func main() {
 	serverMode := flag.Bool("server", false, "Inits the application in server mode")
 	clientMode := flag.Bool("client", false, "Inits the application in client mode")
 	directMode := flag.Bool("direct", false, "Inits the application in direct mode")
+	starsMode := flag.Bool("stars", false, "Inits the application in stars mode")
 	url := "ws://localhost:8080/ws"
 	// Parsea los flags desde los argumentos de línea de comandos
 	flag.Parse()
@@ -29,6 +30,8 @@ func main() {
 		scene = game.NewServerScene(g, &server)
 	} else if *directMode {
 		scene = game.NewRabbitDirectScene(g)
+	} else if *starsMode {
+		scene = game.NewStarsDirectScene(g)
 	} else if *clientMode {
 		fmt.Println("Iniciando en modo cliente...")
 		client, err := network.NewClient(url)

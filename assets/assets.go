@@ -18,9 +18,11 @@ var RabbitSprite = mustLoadImage("tile_0106.png")
 var RabbitSpriteR = mustLoadImage("tile_0160.png")
 var PlayerSprite = mustLoadImage("player.png")
 var LettuceSprite = mustLoadImage("tile_0094.png")
+var StarSprite = mustLoadImage("star0.png")
 var MeteorSprites = mustLoadImages("meteors/*.png")
 var LaserSprite = mustLoadImage("laser.png")
-var ScoreFont = mustLoadFont("font.ttf")
+var ScoreFont = mustLoadFont("font.ttf", 48)
+var InfoFont = mustLoadFont("font.ttf", 16)
 
 func mustLoadImage(name string) *ebiten.Image {
 	f, err := assets.Open(name)
@@ -51,7 +53,7 @@ func mustLoadImages(path string) []*ebiten.Image {
 	return images
 }
 
-func mustLoadFont(name string) font.Face {
+func mustLoadFont(name string, size float64) font.Face {
 	f, err := assets.ReadFile(name)
 	if err != nil {
 		panic(err)
@@ -63,7 +65,7 @@ func mustLoadFont(name string) font.Face {
 	}
 
 	face, err := opentype.NewFace(tt, &opentype.FaceOptions{
-		Size:    48,
+		Size:    size,
 		DPI:     72,
 		Hinting: font.HintingVertical,
 	})
