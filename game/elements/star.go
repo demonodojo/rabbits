@@ -94,7 +94,6 @@ func (s *Star) Update() {
 
 func (l *Star) Draw(screen *ebiten.Image, geom ebiten.GeoM) {
 
-	bounds := l.sprite.Bounds()
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Scale(l.scale, l.scale)
 	//op.GeoM.Translate(-float64(bounds.Dx())*l.scale, -float64(bounds.Dy())*l.scale)
@@ -134,16 +133,12 @@ func (l *Star) Toggle() {
 	l.selected = !l.selected
 	if l.selected {
 		l.Action = "EDIT"
-	} else {
-		l.Action = "UNEDIT"
+		l.channel.Enqueue(l.ToJson())
 	}
-	l.channel.Enqueue(l.ToJson())
 }
 
 func (l *Star) UnSelect() {
 	l.selected = false
-	l.Action = "UNEDIT"
-	l.channel.Enqueue(l.ToJson())
 }
 
 func (l *Star) Center() (float64, float64) {
@@ -155,8 +150,8 @@ func (l *Star) Collider() game.Rect {
 	return game.NewRect(
 		l.Position.X-8,
 		l.Position.Y-8,
-		l.Position.X+8,
-		l.Position.X+8,
+		16,
+		16,
 	)
 }
 
