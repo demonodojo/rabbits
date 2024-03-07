@@ -5,9 +5,11 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
+
 	"github.com/demonodojo/rabbits/game"
 	"github.com/demonodojo/rabbits/game/network"
-	"log"
+	"github.com/demonodojo/rabbits/game/scenes"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -31,7 +33,7 @@ func main() {
 	} else if *directMode {
 		scene = game.NewRabbitDirectScene(g)
 	} else if *starsMode {
-		scene = game.NewStarsDirectScene(g)
+		scene = scenes.NewStarsDirectScene(g)
 	} else if *clientMode {
 		fmt.Println("Iniciando en modo cliente...")
 		client, err := network.NewClient(url)
@@ -47,6 +49,9 @@ func main() {
 
 	fmt.Println("Iniciando juego...")
 	g.SetScene(scene)
+
+	ebiten.SetWindowTitle("Rabbits")
+	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	err := ebiten.RunGame(g)
 	if err != nil {
 		panic(err)

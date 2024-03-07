@@ -34,7 +34,7 @@ func NewRabbit(game *Game) *Rabbit {
 	sprite := assets.PlayerSprite
 	spriteR := assets.RabbitSpriteR
 
-	scale := 4.0
+	scale := .4
 	bounds := sprite.Bounds()
 	halfW := float64(bounds.Dx()) * scale / 2
 	halfH := float64(bounds.Dy()) * scale / 2
