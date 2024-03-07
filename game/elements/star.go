@@ -98,12 +98,12 @@ func (l *Star) Draw(screen *ebiten.Image, geom ebiten.GeoM) {
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Scale(l.scale, l.scale)
 	//op.GeoM.Translate(-float64(bounds.Dx())*l.scale, -float64(bounds.Dy())*l.scale)
-	op.GeoM.Translate(l.Position.X-float64(bounds.Dx()/2)*l.scale, l.Position.Y-float64(bounds.Dy()/2)*l.scale)
+	op.GeoM.Translate(l.Position.X*l.scale, l.Position.Y*l.scale)
 	op.GeoM.Concat(geom)
 
 	//screen.DrawImage(l.sprite, op)
-	x, y := op.GeoM.Apply(float64(bounds.Dx())/2, float64(bounds.Dy())/2)
-	x2, y2 := op.GeoM.Apply(float64(bounds.Dx()), float64(bounds.Dy()))
+	x, y := op.GeoM.Apply(0, 0)
+	x2, y2 := op.GeoM.Apply(16, 16)
 
 	radius := game.EuclidianDistance(game.Vector{X: x, Y: y}, game.Vector{X: x2, Y: y2})
 	c := color.RGBA{210, 210, 50, 1}
@@ -147,19 +147,16 @@ func (l *Star) UnSelect() {
 }
 
 func (l *Star) Center() (float64, float64) {
-	bounds := l.sprite.Bounds()
-
-	return l.Position.X - float64(bounds.Dx()/2)*l.scale, l.Position.Y - float64(bounds.Dy()/2)*l.scale
+	return l.Position.X, l.Position.Y
 }
 
 func (l *Star) Collider() game.Rect {
-	bounds := l.sprite.Bounds()
 
 	return game.NewRect(
-		l.Position.X,
-		l.Position.Y,
-		float64(bounds.Dx())*l.scale,
-		float64(bounds.Dy())*l.scale,
+		l.Position.X-8,
+		l.Position.Y-8,
+		l.Position.X+8,
+		l.Position.X+8,
 	)
 }
 
