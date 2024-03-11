@@ -24,6 +24,7 @@ type ServerScene struct {
 	lettuceSpawnTimer *Timer
 	rabbits           map[uuid.UUID]*Rabbit
 	lettuces          map[uuid.UUID]*Lettuce
+	bullets           map[uuid.UUID]*Bullet
 	lastUpdateTime    time.Time
 
 	score         int
@@ -39,6 +40,7 @@ func NewServerScene(g *Game, server *network.Server) *ServerScene {
 		camera:            &Camera{ViewPort: f64.Vec2{screenWidth, screenHeight}},
 		rabbits:           make(map[uuid.UUID]*Rabbit),
 		lettuces:          make(map[uuid.UUID]*Lettuce),
+		bullets:           make(map[uuid.UUID]*Bullet),
 		lettuceSpawnTimer: NewTimer(lettuceSpawnTime),
 		server:            server,
 		baseVelocity:      baseMeteorVelocity,
@@ -89,6 +91,24 @@ func (s *ServerScene) Update() error {
 		ebiten.SetFullscreen(false)
 	}
 
+	for _, b := range s.bullets {
+		b.Update()
+		if b.Action == "DELETE" {
+			delete(s.bullets, b.ID)
+			s.server.Broadcast(b.ToJson())
+		}
+	}
+
+	for _, r := range s.rabbits {
+		for _, b := range s.bullets {
+			if r.Collider().Intersects(b.Collider()) {
+				r.Fired()
+				b.Action = "DELETE"
+				s.server.Broadcast(r.ToJson())
+			}
+		}
+	}
+
 	for _, r := range s.rabbits {
 		for il, l := range s.lettuces {
 			if l.Collider().Intersects(r.Collider()) {
@@ -121,11 +141,12 @@ func (g *ServerScene) Draw(screen *ebiten.Image) {
 		m.Draw(screen, g.camera.Matrix)
 	}
 
-	// for _, b := range g.bullets {
-	// 	b.Draw(screen)
-	// }
+	for _, b := range g.bullets {
+		b.Draw(screen, g.camera.Matrix)
+	}
 
 	text.Draw(screen, fmt.Sprintf("%06d", g.score), assets.ScoreFont, screenWidth/2-100, 50, color.White)
+	text.Draw(screen, fmt.Sprintf("%06d", len(g.bullets)), assets.InfoFont, 10, 50, color.White)
 }
 
 func (g *ServerScene) Reset() {
@@ -155,6 +176,7 @@ func (s *ServerScene) UpdateRabbits() {
 			log.Fatal(fmt.Errorf("Cannot unmarshal %s", m.Message))
 			continue
 		}
+
 		switch serial.ClassName {
 		case "Rabbit":
 			var rabbit Rabbit
@@ -162,14 +184,23 @@ func (s *ServerScene) UpdateRabbits() {
 				log.Fatal(fmt.Errorf("Cannot unmarshal the Rabbit %s", m.Message))
 				continue
 			}
-			s.server.Broadcast(m.Message)
-			existing := s.rabbits[rabbit.ID]
-			if existing != nil {
-				existing.CopyFrom(&rabbit)
+
+			if serial.Action == "FIRE" {
+				position, rotation := rabbit.advancedPosition()
+				b := NewBullet(position, rotation)
+				s.bullets[b.ID] = b
+				s.server.Broadcast(b.ToJson())
 			} else {
-				newRabbit := NewRabbit(s.game)
-				newRabbit.CopyFrom(&rabbit)
-				s.rabbits[rabbit.ID] = newRabbit
+
+				s.server.Broadcast(m.Message)
+				existing := s.rabbits[rabbit.ID]
+				if existing != nil {
+					existing.CopyFrom(&rabbit)
+				} else {
+					newRabbit := NewRabbit(s.game)
+					newRabbit.CopyFrom(&rabbit)
+					s.rabbits[rabbit.ID] = newRabbit
+				}
 			}
 		case "Lettuce":
 			log.Fatal("lettuce not implemented")

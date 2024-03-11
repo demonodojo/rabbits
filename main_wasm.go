@@ -13,7 +13,7 @@ import (
 func main() {
 	g := &game.Game{}
 	var scene game.Scene
-	url := "ws://localhost:8080/ws"
+	url := "ws://192.168.1.45:8080/ws"
 	fmt.Println("Iniciando...")
 	if true {
 		fmt.Println("Iniciando en javascript...")

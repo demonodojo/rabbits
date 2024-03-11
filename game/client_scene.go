@@ -22,8 +22,10 @@ type ClientScene struct {
 	rabbit        *Rabbit
 	rabbits       map[uuid.UUID]*Rabbit
 	lettuces      map[uuid.UUID]*Lettuce
+	bullets       map[uuid.UUID]*Bullet
 	rabbitsOrder  []uuid.UUID
 	lettucesOrder []uuid.UUID
+	bulletsOrder  []uuid.UUID
 
 	score         int
 	scale         float64
@@ -43,11 +45,13 @@ func NewClientScene(g *Game, client network.GenericClient) *ClientScene {
 	s.camera.Reset()
 	s.rabbits = make(map[uuid.UUID]*Rabbit)
 	s.lettuces = make(map[uuid.UUID]*Lettuce)
+	s.bullets = make(map[uuid.UUID]*Bullet)
 	s.rabbit = NewRabbit(g)
 	s.rabbits[s.rabbit.ID] = s.rabbit
 
 	s.UpdateRabbitsOrder()
 	s.UpdateLettucesOrder()
+	s.UpdateBulletsOrder()
 
 	client.Write(s.rabbit.ToJson())
 	return s
@@ -57,6 +61,7 @@ func (s *ClientScene) Update() error {
 
 	if s.rabbit.Interact() {
 		s.client.Write(s.rabbit.ToJson())
+		s.rabbit.Action = "NONE"
 	}
 
 	s.UpdateRabbits()
@@ -72,6 +77,14 @@ func (s *ClientScene) Update() error {
 		if l.Action == "Delete" {
 			delete(s.lettuces, l.ID)
 			s.UpdateLettucesOrder()
+		}
+	}
+
+	for _, b := range s.bullets {
+		b.Update()
+		if b.Action == "DELETE" {
+			delete(s.bullets, b.ID)
+			s.UpdateBulletsOrder()
 		}
 	}
 
@@ -103,11 +116,13 @@ func (g *ClientScene) Draw(screen *ebiten.Image) {
 		l.Draw(screen, g.camera.Matrix)
 	}
 
-	// for _, b := range g.bullets {
-	// 	b.Draw(screen)
-	// }
+	for _, id := range g.bulletsOrder {
+		l := g.bullets[id]
+		l.Draw(screen, g.camera.Matrix)
+	}
 
 	text.Draw(screen, fmt.Sprintf("%06d", g.rabbit.Score), assets.ScoreFont, screenWidth/2-100, 50, color.White)
+	text.Draw(screen, fmt.Sprintf("%06d", len(g.bullets)), assets.InfoFont, 10, 50, color.White)
 }
 
 func (g *ClientScene) Reset() {
@@ -148,6 +163,7 @@ func (s *ClientScene) UpdateRabbits() {
 			if s.rabbit.ID == rabbit.ID {
 				existing = s.rabbit
 				s.rabbit.Score = rabbit.Score
+				s.rabbit.Speed = rabbit.Speed
 				if EuclidianDistance(rabbit.Position, s.rabbit.Position) > 100.0 {
 					s.rabbit.Position = rabbit.Position
 				}
@@ -179,6 +195,23 @@ func (s *ClientScene) UpdateRabbits() {
 				s.lettuces[lettuce.ID] = l
 				s.UpdateLettucesOrder()
 			}
+
+		case "Bullet":
+			var bullet Bullet
+			if err := json.Unmarshal(jsonData, &bullet); err != nil {
+				log.Fatal(fmt.Errorf("Cannot unmarshal the Bullet %s", m))
+				continue
+			}
+			existing := s.bullets[bullet.ID]
+			if existing != nil {
+				existing.CopyFrom(&bullet)
+			} else {
+				b := NewBullet(bullet.Position, bullet.Rotation)
+				b.CopyFrom(&bullet)
+				s.bullets[bullet.ID] = b
+				s.UpdateBulletsOrder()
+			}
+
 		default:
 			log.Printf("Cannot unmarshal the Message %s", m)
 		}
@@ -191,4 +224,8 @@ func (s *ClientScene) UpdateRabbitsOrder() {
 
 func (s *ClientScene) UpdateLettucesOrder() {
 	s.lettucesOrder = GetOrderedIds(s.lettuces)
+}
+
+func (s *ClientScene) UpdateBulletsOrder() {
+	s.bulletsOrder = GetOrderedIds(s.bullets)
 }

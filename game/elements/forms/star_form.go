@@ -4,15 +4,12 @@ import (
 	"encoding/json"
 
 	"image/color"
-	"log"
-
-	"golang.org/x/image/font/gofont/goregular"
 
 	"github.com/demonodojo/rabbits/game"
+	"github.com/demonodojo/rabbits/game/elements"
 	"github.com/ebitenui/ebitenui"
-	"github.com/ebitenui/ebitenui/image"
+	e_image "github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/widget"
-	"github.com/golang/freetype/truetype"
 
 	"github.com/hajimehoshi/ebiten/v2"
 
@@ -24,43 +21,27 @@ type StarForm struct {
 	scale float64
 	ui    *ebitenui.UI
 	root  *widget.Container
+	star  *elements.Star
 }
 
-func NewStarForm() *StarForm {
+func NewStarForm(star *elements.Star) *StarForm {
 
-	// This creates the root container for this UI.
-	// All other UI elements must be added to this container.
+	// construct a new container that serves as the root of the UI hierarchy
 	rootContainer := widget.NewContainer(
-		// The container will use a plain color as its background. This is not required if you wish
-		// the container to be transparent.
-		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0xaa, 0xff})),
-		// Containers have the concept of a Layout. This is how children of this container should be
-		// displayed within the bounds of this container.
-		// The container will use an anchor layout to layout its single child widget
-		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
+		// the container will use a plain color as its background
+		widget.ContainerOpts.BackgroundImage(e_image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff})),
+
+		// the container will use a row layout to layout the textinput widgets
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+			widget.RowLayoutOpts.Spacing(20),
+			widget.RowLayoutOpts.Padding(widget.NewInsetsSimple(20)))),
 	)
 
 	// This adds the root container to the UI, so that it will be rendered.
 	eui := &ebitenui.UI{
 		Container: rootContainer,
 	}
-
-	// This loads a font and creates a font face.
-	ttfFont, err := truetype.Parse(goregular.TTF)
-	if err != nil {
-		log.Fatal("Error Parsing Font", err)
-	}
-	fontFace := truetype.NewFace(ttfFont, &truetype.Options{
-		Size: 32,
-	})
-
-	// This creates a text widget that says "Hello World!"
-	helloWorldLabel := widget.NewText(
-		widget.TextOpts.Text("Hello World!", fontFace, color.White),
-	)
-
-	// To display the text widget, we have to add it to the root container.
-	rootContainer.AddChild(helloWorldLabel)
 
 	l := &StarForm{
 		Serial: game.Serial{
@@ -70,7 +51,17 @@ func NewStarForm() *StarForm {
 		},
 		ui:   eui,
 		root: rootContainer,
+		star: star,
 	}
+
+	name := NewTextInput("Name", star.Name)
+	// add the button as a child of the container
+	rootContainer.AddChild(NewButton("save", func(args *widget.ButtonClickedEventArgs) {
+		l.Action = "SUBMIT"
+		star.Name = name.GetText()
+	}))
+	rootContainer.AddChild(name)
+
 	return l
 }
 

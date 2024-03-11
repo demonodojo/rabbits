@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text"
@@ -80,11 +81,22 @@ func NewStarsDirectScene(g *game.Game) *StarsDirectScene {
 
 func (g *StarsDirectScene) Update() error {
 
+	if g.starForm != nil {
+		g.starForm.Update()
+		if g.starForm.Action == "SUBMIT" {
+			g.starForm = nil
+		}
+	} else {
+		g.rabbit.Interact()
+
+		selected := g.Interact()
+		if !selected {
+			g.camera.Update(g.rabbit)
+		}
+
+	}
+
 	g.Spawn()
-
-	g.rabbit.Interact()
-
-	g.Interact()
 
 	g.scale += 0.01
 	if g.scale > 2 {
@@ -109,23 +121,6 @@ func (g *StarsDirectScene) Update() error {
 		ebiten.SetFullscreen(false)
 	}
 
-	g.camera.Update(g.rabbit)
-
-	// for _, b := range g.bullets {
-	// 	b.Update()
-	// }
-
-	// // Check for meteor/bullet collisions
-	// for i, m := range g.meteors {
-	// 	for j, b := range g.bullets {
-	// 		if m.Collider().Intersects(b.Collider()) {
-	// 			g.meteors = append(g.meteors[:i], g.meteors[i+1:]...)
-	// 			g.bullets = append(g.bullets[:j], g.bullets[j+1:]...)
-	// 			g.score++
-	// 		}
-	// 	}
-	// }
-
 	// Check for rabbit/stars collision
 
 	for i, l := range g.stars {
@@ -143,7 +138,7 @@ func (g *StarsDirectScene) Update() error {
 	return nil
 }
 
-func (s *StarsDirectScene) Interact() {
+func (s *StarsDirectScene) Interact() bool {
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		var selected *elements.Star
 		lastRadius := 5000.0
@@ -165,7 +160,27 @@ func (s *StarsDirectScene) Interact() {
 		if selected != nil {
 			selected.Toggle()
 		}
+		return selected != nil
 	}
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
+		var selected *elements.Star
+		lastRadius := 5000.0
+		x, y := ebiten.CursorPosition()
+
+		wx, wy := s.camera.ScreenToWorld(x, y)
+		for _, l := range s.stars {
+			radius := game.EuclidianDistance(game.Vector{X: l.Position.X, Y: l.Position.Y}, game.Vector{X: float64(wx), Y: float64(wy)})
+			if radius < 20 && radius < lastRadius {
+				selected = l
+				lastRadius = radius
+			}
+		}
+		if selected != nil {
+			selected.Edit()
+		}
+		return selected != nil
+	}
+	return false
 }
 
 func (g *StarsDirectScene) Draw(screen *ebiten.Image) {
@@ -186,6 +201,11 @@ func (g *StarsDirectScene) Draw(screen *ebiten.Image) {
 	// }
 
 	text.Draw(screen, fmt.Sprintf("%06d", g.score), assets.ScoreFont, screenWidth/2-100, 50, color.White)
+
+	if g.starForm != nil {
+		g.starForm.Draw(screen, g.camera.Matrix)
+		return
+	}
 }
 
 func (g *StarsDirectScene) Reset() {
@@ -217,17 +237,24 @@ func (s *StarsDirectScene) Spawn() {
 			continue
 		}
 		switch serial.ClassName {
-		case "Form":
-			var form game.Form
-			if err := json.Unmarshal(jsonData, &form); err != nil {
-				log.Fatal(fmt.Errorf("Cannot unmarshal the Form %s", m))
-				continue
+		case "Star":
+			if serial.Action == "EDIT" {
+				existing := s.starById(serial.ID)
+				newForm := forms.NewStarForm(existing)
+				s.starForm = newForm
 			}
 
-			newForm := game.NewForm()
-			newForm.CopyFrom(&form)
 		default:
-			log.Printf("Cannot unmarshal the Rabbit %s", m)
+			log.Printf("Cannot unmarshal the Elemetnt %s", m)
 		}
 	}
+}
+
+func (s *StarsDirectScene) starById(ID uuid.UUID) *elements.Star {
+	for _, star := range s.stars {
+		if star.ID == ID {
+			return star
+		}
+	}
+	return nil
 }

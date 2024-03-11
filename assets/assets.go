@@ -6,8 +6,10 @@ import (
 	_ "image/png"
 	"io/fs"
 
+	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten/v2"
 	"golang.org/x/image/font"
+	"golang.org/x/image/font/gofont/goregular"
 	"golang.org/x/image/font/opentype"
 )
 
@@ -17,12 +19,14 @@ var assets embed.FS
 var RabbitSprite = mustLoadImage("tile_0106.png")
 var RabbitSpriteR = mustLoadImage("tile_0160.png")
 var PlayerSprite = mustLoadImage("player.png")
+var CarrierSprite = mustLoadImage("player.png")
 var LettuceSprite = mustLoadImage("tile_0094.png")
 var StarSprite = mustLoadImage("star0.png")
 var MeteorSprites = mustLoadImages("meteors/*.png")
 var LaserSprite = mustLoadImage("laser.png")
 var ScoreFont = mustLoadFont("font.ttf", 48)
-var InfoFont = mustLoadFont("font.ttf", 16)
+var InfoFont = mustLoadFont("font.ttf", 14)
+var StarFont = regularFont(12)
 
 func mustLoadImage(name string) *ebiten.Image {
 	f, err := assets.Open(name)
@@ -74,4 +78,17 @@ func mustLoadFont(name string, size float64) font.Face {
 	}
 
 	return face
+}
+
+func regularFont(size float64) font.Face {
+	ttfFont, err := truetype.Parse(goregular.TTF)
+	if err != nil {
+		return nil
+	}
+
+	return truetype.NewFace(ttfFont, &truetype.Options{
+		Size:    size,
+		DPI:     72,
+		Hinting: font.HintingFull,
+	})
 }
