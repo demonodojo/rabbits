@@ -149,14 +149,14 @@ func (s *ClientScene) UpdateRabbits() {
 		jsonData := []byte(m)
 		var serial Serial
 		if err := json.Unmarshal(jsonData, &serial); err != nil {
-			log.Fatal(fmt.Errorf("Cannot unmarshal %s", m))
+			log.Fatal(fmt.Errorf("cannot unmarshal %s", m))
 			continue
 		}
 		switch serial.ClassName {
 		case "Rabbit":
 			var rabbit Rabbit
 			if err := json.Unmarshal(jsonData, &rabbit); err != nil {
-				log.Fatal(fmt.Errorf("Cannot unmarshal the Rabbit %s", m))
+				log.Fatal(fmt.Errorf("cannot unmarshal the Rabbit %s", m))
 				continue
 			}
 			var existing *Rabbit
@@ -183,7 +183,7 @@ func (s *ClientScene) UpdateRabbits() {
 		case "Lettuce":
 			var lettuce Lettuce
 			if err := json.Unmarshal(jsonData, &lettuce); err != nil {
-				log.Fatal(fmt.Errorf("Cannot unmarshal the Lettuce %s", m))
+				log.Fatal(fmt.Errorf("cannot unmarshal the Lettuce %s", m))
 				continue
 			}
 			existing := s.lettuces[lettuce.ID]
@@ -199,7 +199,7 @@ func (s *ClientScene) UpdateRabbits() {
 		case "Bullet":
 			var bullet Bullet
 			if err := json.Unmarshal(jsonData, &bullet); err != nil {
-				log.Fatal(fmt.Errorf("Cannot unmarshal the Bullet %s", m))
+				log.Fatal(fmt.Errorf("cannot unmarshal the Bullet %s", m))
 				continue
 			}
 			existing := s.bullets[bullet.ID]
@@ -213,7 +213,7 @@ func (s *ClientScene) UpdateRabbits() {
 			}
 
 		default:
-			log.Printf("Cannot unmarshal the Message %s", m)
+			log.Printf("cannot unmarshal the Message %s", m)
 		}
 	}
 }
