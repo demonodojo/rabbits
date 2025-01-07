@@ -173,7 +173,7 @@ func (s *ServerScene) UpdateRabbits() {
 		jsonData := []byte(m.Message)
 		var serial Serial
 		if err := json.Unmarshal(jsonData, &serial); err != nil {
-			log.Fatal(fmt.Errorf("Cannot unmarshal %s", m.Message))
+			log.Fatal(fmt.Errorf("cannot unmarshal %s", m.Message))
 			continue
 		}
 
@@ -181,7 +181,7 @@ func (s *ServerScene) UpdateRabbits() {
 		case "Rabbit":
 			var rabbit Rabbit
 			if err := json.Unmarshal(jsonData, &rabbit); err != nil {
-				log.Fatal(fmt.Errorf("Cannot unmarshal the Rabbit %s", m.Message))
+				log.Fatal(fmt.Errorf("cannot unmarshal the Rabbit %s", m.Message))
 				continue
 			}
 
@@ -205,7 +205,7 @@ func (s *ServerScene) UpdateRabbits() {
 		case "Lettuce":
 			log.Fatal("lettuce not implemented")
 		default:
-			log.Printf("Cannot unmarshal the Rabbit %s", m.Message)
+			log.Printf("cannot unmarshal the Rabbit %s", m.Message)
 		}
 	}
 }
