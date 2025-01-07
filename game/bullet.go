@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	bulletSpeedPerSecond = 300.0
+	bulletSpeedPerSecond = 400.0
 	bulletLife           = 60
 )
 

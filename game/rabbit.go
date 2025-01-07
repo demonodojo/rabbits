@@ -102,13 +102,17 @@ func (r *Rabbit) Interact() bool {
 	}
 
 	if ebiten.IsKeyPressed(ebiten.KeyUp) {
-		r.Speed += SpeedPerSecond
-		interaction = true
+		if r.Speed < 5 {
+			r.Speed += SpeedPerSecond
+			interaction = true
+		}
 	}
 
 	if ebiten.IsKeyPressed(ebiten.KeyDown) {
-		r.Speed -= SpeedPerSecond
-		interaction = true
+		if r.Speed > -5 {
+			r.Speed -= SpeedPerSecond
+			interaction = true
+		}
 	}
 
 	if ebiten.IsKeyPressed(ebiten.KeyF) {
@@ -149,12 +153,12 @@ func (r *Rabbit) Draw(screen *ebiten.Image, geom ebiten.GeoM) {
 
 	screen.DrawImage(r.sprite, op)
 	text.Draw(screen, fmt.Sprintf("%f %f", r.halfH, r.halfW), assets.InfoFont, 10, 70, color.White)
-	text.Draw(screen, fmt.Sprintf("Heat %d", r.Heat), assets.InfoFont, 10, 90, color.White)
+	text.Draw(screen, fmt.Sprintf("Speed %f", r.Speed), assets.InfoFont, 10, 90, color.White)
 }
 
 func (r *Rabbit) Fired() {
 	r.Speed = 0
-	r.Score -= 10
+	r.Score -= 1
 }
 
 func (r *Rabbit) Collider() Rect {

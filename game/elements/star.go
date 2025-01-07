@@ -154,7 +154,7 @@ func (l *Star) Draw(screen *ebiten.Image, geom ebiten.GeoM) {
 	}
 
 	if radius > 16 {
-		text.Draw(screen, fmt.Sprintf(l.Name), assets.StarFont, int(x)-len(l.Name)*2, int(y+radius/2+30), color.RGBA{255, 255, 255, 1})
+		text.Draw(screen, fmt.Sprintf(l.Name), assets.StarFont, int(x)-len(l.Name)*2, int(y+radius/2+30), color.RGBA{255, 255, 255, 255})
 	}
 }
 
