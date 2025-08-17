@@ -5,7 +5,7 @@ package main
 import (
 	"fmt"
 	"github.com/demonodojo/rabbits/game"
-	"github.com/demonodojo/rabbits/game/network"
+	"github.com/demonodojo/rabbits/game/scenes"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -13,28 +13,10 @@ import (
 func main() {
 	g := &game.Game{}
 	var scene game.Scene
-	url := "ws://192.168.1.45:8080/ws"
 	fmt.Println("Iniciando...")
-	if true {
-		fmt.Println("Iniciando en javascript...")
-		client, err := network.NewJSClient(url)
-		if err != nil {
-			fmt.Println("Error")
-			//log.Fatal("dial:", err)
-			return
-		} else {
-			fmt.Println("Creando escena...")
-			scene = game.NewClientScene(g, client)
-		}
-		defer client.Close()
-	} else {
-		fmt.Println("Iniciando cliente...")
-		_, err := network.NewJSClient(url)
-		if err != nil {
-			fmt.Println("Error")
-		}
-		scene = game.NewRabbitDirectScene(g)
-	}
+	
+	// Por defecto, mostrar el menú principal
+	scene = scenes.NewMenuScene(g)
 
 	fmt.Println("Iniciando juego...")
 	g.SetScene(scene)

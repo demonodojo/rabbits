@@ -15,8 +15,8 @@ PKG=github.com/demonodojo/rabbits
 compile:
     # Compila el paquete Go a WebAssembly
 	env NODE_ENV=development GOOS=js GOARCH=wasm go build -o $(WASM_FILE) $(PKG)
-    
-    # Copia wasm_exec.js al directorio actual
-	cp $(GOROOT)/misc/wasm/wasm_exec.js $(OUT_DIR)
+
+    	# Copia wasm_exec.js al directorio actual
+	cp $(GOROOT)/lib/wasm/wasm_exec.js $(OUT_DIR)
 
 .PHONY: compile

@@ -44,7 +44,8 @@ func main() {
 		}
 		defer client.Close()
 	} else {
-		scene = game.NewRabbitDirectScene(g)
+		// Por defecto, mostrar el menú principal
+		scene = scenes.NewMenuScene(g)
 	}
 
 	fmt.Println("Iniciando juego...")
